@@ -42,7 +42,7 @@ class TikzRenderer(AbstractRenderer):
             show_code: bool = True,             # TikZ-Code in der Terminal-Konsole ausgeben
             show_pdf: bool = True,              # PDF-Generierung und Anzeige
             show_support_labels: bool = False,   # Anzeige der Knotenbezeichnungen
-            show_bar_numbers: bool = False,      # Anzeige der Stabnummern
+            show_bar_numbers: bool = True,      # Anzeige der Stabnummern
             show_dimensioning: bool = True,
             show_loads: bool = True,            # Anzeige der Lasten
             show_reactions: bool = False,          # Anzeige der Auflagerkräfte
@@ -1235,7 +1235,7 @@ class TikzRenderer(AbstractRenderer):
         with open(out_path, 'w', encoding='utf-8') as f:
             f.write(self._build_document())
 
-        print(f'TikZ-Datei gespeichert unter: {out_path}')
+        print(f'TeX-Datei gespeichert unter: {out_path}')
         return out_path
     
     def save_tikz_file(self, filename: str | None = None):

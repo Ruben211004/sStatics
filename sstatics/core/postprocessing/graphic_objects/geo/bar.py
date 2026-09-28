@@ -105,7 +105,7 @@ class BarGeo(ObjectGeo):
             {**self._text_style, 'label_type': 'bar_number'}
         )
         return OpenCurveGeo(
-            *self._bar_coords, text=self._text, preferred_text_pos='0,2',
+            *self._bar_coords, text=self._text, preferred_text_pos='0,2',       # bei 0,0 bessere Stabnummernposition
             line_style=line_style, text_style=text_style
         )
 

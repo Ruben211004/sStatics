@@ -128,8 +128,8 @@ class StaticForceGeo(ObjectGeo):
             xj, zj = bar.node_j.x, bar.node_j.z
             length = ((xj - xi) ** 2 + (zj - zi) ** 2) ** 0.5
                 
-            m0, m1 = slope_i * length, slope_j * length                 # Extremstelle berechnen
-            t_star = cls._hermite_extremum(value_i, value_j, m0, m1)
+            m0, m1 = slope_i * length, slope_j * length
+            t_star = cls._hermite_extremum(value_i, value_j, m0, m1)    # Extremstelle berechnen
             extremum = None
             if t_star is not None:
                 val_star = cls._hermite_eval(t_star, value_i, value_j, m0, m1)

@@ -343,7 +343,7 @@ class TikzRenderer(AbstractRenderer):
         if origin is None or hinge_type is None:
             return
 
-        key = (round(origin[0], 4), round(origin[1], 4))    #???
+        key = (round(origin[0], 4), round(origin[1], 4))
         if key in self._hinge_keys_seen:
             return
         self._hinge_keys_seen.add(key)
@@ -447,7 +447,7 @@ class TikzRenderer(AbstractRenderer):
             )
         return self._sf_scale_names[index]
     
-    def _fmt_calc_coord(self, point_name, angle_deg, along, perp=None):        # NEU
+    def _fmt_calc_coord(self, point_name, angle_deg, along, perp=None):
         """Baut eine TikZ-'calc'-Koordinate, die im .tex-Code sichtbar als Summe aus einem bereits registrierten Punkt (z.B. Stabanfang) und einer Strecke entlang/senkrecht zum Stab erscheint.
         So bleibt im erzeugten Code nachvollziehbar, wo genau (z.B. die Extremstelle einer Schnittkraftfläche) relativ zum Stabanfang liegt, statt nur eine bereits fertig verrechnete Zahl zu zeigen.
         TikZ verwendet hier die Polarkoordinaten-Syntax (winkel:radius) innerhalb der 'calc'-Koordinate.
@@ -708,7 +708,7 @@ class TikzRenderer(AbstractRenderer):
         if lineload_type == 'x_proj':
             self._add_lineload_x_proj(style)
             return
-        if lineload_type == 'x_axial':                # NEU
+        if lineload_type == 'x_axial':
             self._add_lineload_axial(style)
             return
         axis = style.get('lineload_axis', 'z')
@@ -858,7 +858,7 @@ class TikzRenderer(AbstractRenderer):
         if style.get('element_type') == 'lineload':
             if not self._show_loads:                                # Linienlasten unterdrücken, wenn show_loads deaktiviert ist
                 return
-            self._add_lineload(style)                               # bla bla bla
+            self._add_lineload(style)
             return
 
         

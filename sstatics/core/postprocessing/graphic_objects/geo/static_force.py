@@ -41,6 +41,7 @@ class StaticForceGeo(ObjectGeo):
         """
         segment_data: Liste von dicts, ein Eintrag pro Mesh-Stababschnitt:
             - point_i, point_j: (x, z) Weltkoordinaten der Segmentenden
+            - length: Segmentlänge
             - value_i, value_j: Schnittkraftwert an beiden Enden (z.B. M_i, M_j)
             - slope_i, slope_j: Steigung dValue/dx an beiden Enden (Momenten-Ableitung: dM/dx = V)
             - rotation: Neigungswinkel des Stabs in rad, z.B. bar.inclination
@@ -125,7 +126,7 @@ class StaticForceGeo(ObjectGeo):
                 
             xi, zi = bar.node_i.x, bar.node_i.z
             xj, zj = bar.node_j.x, bar.node_j.z
-            length = ((xj - xi) ** 2 + (zj - zi) ** 2) ** 0.5
+            length = float(np.hypot(xj - xi, zj - zi))
                 
             m0, m1 = slope_i * length, slope_j * length
             t_star = cls._hermite_extremum(value_i, value_j, m0, m1)    # Extremstelle berechnen
@@ -136,6 +137,7 @@ class StaticForceGeo(ObjectGeo):
 
             segment_data.append({
                 'point_i': (bar.node_i.x, bar.node_i.z),'point_j': (bar.node_j.x, bar.node_j.z),
+                'length': length,
                 'value_i': value_i, 'value_j': value_j,
                 'slope_i': slope_i, 'slope_j': slope_j,
                 'rotation': bar.inclination,
@@ -148,13 +150,6 @@ class StaticForceGeo(ObjectGeo):
             scale_diagram=scale_diagram, show_text=show_text
         )
         return sys_geo, sf_geo
-    
-    @staticmethod   
-    def _segment_length(seg):
-        """Zentrale Längenberechnung, damit sowohl in graphic_elements als auch in text_elements keine Redundanz entsteht."""
-        xi, zi = seg['point_i']
-        xj, zj = seg['point_j']
-        return float(np.hypot(xj - xi, zj - zi))
 
     def _segment_style(self, seg, index):
         return {
@@ -162,7 +157,7 @@ class StaticForceGeo(ObjectGeo):
             'element_type': 'static_force',
             'sf_pivot': seg['point_i'],
             'sf_rotation_deg': float(np.degrees(seg['rotation'])),
-            'sf_length': self._segment_length(seg),
+            'sf_length': seg['length'],
             'sf_index': index,
             'sf_value_i': seg['value_i'],
             'sf_value_j': seg['value_j'],
@@ -176,7 +171,7 @@ class StaticForceGeo(ObjectGeo):
     def _segment_label_data(self, seg):
         """Liefert je Beschriftungspunkt ein Tupel (Position entlang Stab, roher Wert, gerundeter Anzeigetext).
         Wird von TikzRenderer genutzt, um die Werte direkt in der \\scope-Umgebung der zugehörigen Fläche auszugeben."""
-        length = self._segment_length(seg)
+        length = seg['length']
         labels = [
             (0.0, seg['value_i'], str(round_value(
                 seg['value_i'], self._decimals, self._sig_digits

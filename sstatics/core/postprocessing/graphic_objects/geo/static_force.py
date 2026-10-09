@@ -6,7 +6,6 @@ from sstatics.core.postprocessing.graphic_objects.geo.object_geo import \
     ObjectGeo
 from sstatics.core.postprocessing.graphic_objects.geo.geometry import \
     OpenCurveGeo
-from sstatics.core.postprocessing.graphic_objects.geo.text import TextGeo
 from sstatics.core.postprocessing.graphic_objects.utils.utils import \
     round_value
 from sstatics.core.postprocessing.graphic_objects.utils.defaults import (
@@ -150,28 +149,6 @@ class StaticForceGeo(ObjectGeo):
         )
         return sys_geo, sf_geo
     
-    @cached_property
-    def _max_value(self):
-        values = [
-            v for seg in self._segment_data
-            for v in (seg['value_i'], seg['value_j'])
-        ]
-        # Wenn Moment an Rand = 0:  Steigungen mit berücksichtigen 
-        slope_contributions = [
-            abs(seg[skey]) * self._segment_length(seg)      # auf Funktionswert umgerechnet, damit ein Vergleich überhaupt sinnvoll ist -> Steigung * Segmentlänge
-            for seg in self._segment_data
-            for skey in ('slope_i', 'slope_j')
-        ]
-        max_val = max(
-            [abs(v) for v in values] + slope_contributions,
-            default=0.0
-        )
-        return 1e-6 if np.isclose(max_val, 0) else max_val
-
-    @cached_property
-    def _scale_factor(self):
-        return self._base_scale / self._max_value * self._scale_diagram
-
     @staticmethod   
     def _segment_length(seg):
         """Zentrale Längenberechnung, damit sowohl in graphic_elements als auch in text_elements keine Redundanz entsteht."""
@@ -179,7 +156,7 @@ class StaticForceGeo(ObjectGeo):
         xj, zj = seg['point_j']
         return float(np.hypot(xj - xi, zj - zi))
 
-    def _segment_style(self, seg, index):               # 
+    def _segment_style(self, seg, index):
         return {
             **self._line_style,
             'element_type': 'static_force',
@@ -196,7 +173,7 @@ class StaticForceGeo(ObjectGeo):
             ),
         }
     
-    def _segment_label_data(self, seg):                            # neu
+    def _segment_label_data(self, seg):
         """Liefert je Beschriftungspunkt ein Tupel (Position entlang Stab, roher Wert, gerundeter Anzeigetext).
         Wird von TikzRenderer genutzt, um die Werte direkt in der \\scope-Umgebung der zugehörigen Fläche auszugeben."""
         length = self._segment_length(seg)
@@ -220,60 +197,17 @@ class StaticForceGeo(ObjectGeo):
     @cached_property
     def graphic_elements(self):
         elements = []
-        for i, seg in enumerate(self._segment_data):                # i als Index
+        for i, seg in enumerate(self._segment_data):
             xi, zi = seg['point_i']
             xj, zj = seg['point_j']
             elements.append(OpenCurveGeo(
                 [xi, xj], [zi, zj], line_style=self._segment_style(seg, i)
             ))
         return elements
-
-    def _segment_text_elements(self, seg):
-        """Ein TextGeo pro Stabende, dabei rückt das linke Ende nach unten rechts ein und das rechte Ende (j) nach unten links. 
-        Somit werden die Textwerte an den Stabenden automatisch so verschoben, dass eine Kollision vermieden wird."""
-        length = self._segment_length(seg)
-        xi, zi = seg['point_i']
-        k = self._scale_factor
-
-        endpoints = (
-            ('value_i', 0.0, 'below right'),
-            ('value_j', length, 'below left'),
-        )
-        texts = [
-            TextGeo(
-                self._origin,
-                insertion_points=[(pos, seg[key] * k)],
-                texts=[str(round_value(
-                    seg[key], self._decimals, self._sig_digits
-                ))],
-                rotation=seg['rotation'], post_translation=(xi, zi),
-                text_style={**self._text_style, 'anchor': anchor, 'element_type': 'static_force'}
-            )
-            for key, pos, anchor in endpoints
-        ]
-
-        extremum = seg.get('extremum')
-        if extremum is not None:
-            texts.append(TextGeo(
-                self._origin,
-                insertion_points=[(extremum['x'], extremum['value'] * k)],
-                texts=[str(round_value(
-                    extremum['value'], self._decimals, self._sig_digits
-                ))],
-                rotation=seg['rotation'], post_translation=(xi, zi),
-                text_style={**self._text_style, 'anchor': 'below', 'element_type': 'static_force'}
-            ))
-        return texts
     
     @cached_property
     def text_elements(self):
-        if not self._show_text:
-            return []
-        return [
-            text_geo
-            for seg in self._segment_data
-            for text_geo in self._segment_text_elements(seg)
-        ]
-
+        return []
+        
     def __repr__(self):
         return f'{self.__class__.__name__}(segment_data={self._segment_data})'
